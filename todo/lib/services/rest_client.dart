@@ -55,9 +55,9 @@ class RestClient {
     uri += "?token=${requestToken}";
     uri += params.entries.map((e) => '&${e.key}=${e.value}').join('');
     var url = Uri.parse(uri);
-
+    var requestType = updateOrInsert ? 'POST' : 'PUT';
     // create a new HTTP GET request
-    var request = http.Request(updateOrInsert ? 'POST' : 'PUT', url);
+    var request = http.Request(requestType, url);
 
     // set the headers
     request.headers.addAll({
@@ -70,9 +70,10 @@ class RestClient {
     final response = await request.send();
     final rCode = response.statusCode;
     if (rCode >= 200 && rCode < 300) {
+        print("${requestType}[ERRROR]: URI ${uri}  RESPONSE: ${await response.stream.bytesToString()}");
       return true;
     }else{
-      print("POST[ERRROR]: URI ${uri}  RESPONSE: ${await response.stream.bytesToString()}");
+      print("${requestType}[ERRROR]: URI ${uri}  RESPONSE: ${await response.stream.bytesToString()}");
       return false;
     }
   }
