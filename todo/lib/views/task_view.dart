@@ -171,6 +171,7 @@ class _TaskViewState extends State<TaskView> {
         _dueDate = "";
         _tagsController.clear();
         _titleController.clear();
+        _descriptionController.clear();
         _commentsController.clear();
       });
     }
