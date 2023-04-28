@@ -9,34 +9,42 @@ import '../states/app_state.dart';
 
 class TaskItemWidget extends StatelessWidget {
   final Todo todo;
-  const TaskItemWidget(this.todo);
+  final ValueChanged onDeletedCallBack;
+  final int widgetIndex;
+
+  const TaskItemWidget(this.todo, this.onDeletedCallBack, this.widgetIndex, {super.key});
 
   //TODO: MOVER A UN ARCHIVO LLAMADO TODOS_CONTROLLER.DART
-  void _deleteTask(RestClient restClient) async {
+  void _deleteTask(RestClient restClient) async {;
     var succeded = await restClient.Delete("tasks/${todo.id}");
-    if (succeded != null) {
+    if (succeded != null) 
+    {
+      onDeletedCallBack(widgetIndex);
+
       Fluttertoast.showToast(
-        msg: "Task created!!",
+        msg: "Todo deleted...",
         backgroundColor: Colors.green,
         textColor: Colors.white,
       );
     } else {
       Fluttertoast.showToast(
-        msg: "Cannot create task",
+        msg: "Can't delete todo... (error)",
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
     }
   }
-
+  
   void NavigateToTaskView(BuildContext context) {
     Navigator.push(
         context,
         MaterialPageRoute<void>(
             builder: (BuildContext context) => const TaskView(),
             settings: RouteSettings(
-              arguments: todo.id,
-            )));
+            arguments: todo.id,
+            )
+          )
+        );
   }
 
   @override
@@ -65,10 +73,10 @@ class TaskItemWidget extends StatelessWidget {
                     SizedBox(height: 8),
                     Row(children: [
                       Chip(
-                      label: Text("State ${todo.isCompleted ? "done" : "to-do"}",
+                      label: Text("${todo.isCompleted ? "DONE" : "TO-DO"}",
                           style: TextStyle(
                               fontSize: 12, fontWeight: FontWeight.bold)),
-                      backgroundColor: todo.isCompleted ? Colors.green : Colors.purple[100],
+                      backgroundColor: todo.isCompleted ? Colors.green : Colors.amber,
                     ),
                     Chip(
                       label: Text("Due date [ ${todo.date} ]",

@@ -22,6 +22,7 @@ class RestClient {
     var url = Uri.parse(uri);
     // create a new HTTP GET request
     var request = http.Request('GET', url);
+    print("GET[PENDING]: URI ${uri}");
 
     // set the headers
     request.headers.addAll({
@@ -56,6 +57,9 @@ class RestClient {
     uri += params.entries.map((e) => '&${e.key}=${e.value}').join('');
     var url = Uri.parse(uri);
     var requestType = updateOrInsert ? 'POST' : 'PUT';
+
+    print("${requestType}[PENDING]: URI ${uri}");
+
     // create a new HTTP GET request
     var request = http.Request(requestType, url);
 
@@ -69,8 +73,11 @@ class RestClient {
     // send the request and wait for the response
     final response = await request.send();
     final rCode = response.statusCode;
-    if (rCode >= 200 && rCode < 300) {
-        print("${requestType}[ERRROR]: URI ${uri}  RESPONSE: ${await response.stream.bytesToString()}");
+
+    print("${requestType} response code:${rCode}");
+
+    if (rCode > 200 && rCode < 300) {
+      print("${requestType}[SUCCESS]: URI ${uri}  RESPONSE: ${await response.stream.bytesToString()}");
       return true;
     }else{
       print("${requestType}[ERRROR]: URI ${uri}  RESPONSE: ${await response.stream.bytesToString()}");
@@ -86,6 +93,7 @@ class RestClient {
 
     // create a new HTTP GET request
     var request = http.Request('DELETE', url);
+    print("DELETE[PENDING]: URI ${uri}");
 
     // set the headers
     request.headers.addAll({

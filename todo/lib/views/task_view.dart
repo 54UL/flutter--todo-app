@@ -43,7 +43,11 @@ class _TaskViewState extends State<TaskView> {
   bool? _editMode;
   bool _todoLoaded = false;
 
+  //TODO: REFACTOR all text input values to his controller (forget the _name references)
   TextEditingController _tagsController = TextEditingController();
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _commentsController = TextEditingController();
 
   @override
   void initState() {
@@ -53,7 +57,7 @@ class _TaskViewState extends State<TaskView> {
     _dueDate = widget.dueDate;
     _comments = widget.comments;
     _description = widget.description;
-    // _tags = widget.tags!;
+    _editMode = false;
   }
 
   String formatDate(DateTime? date) {
@@ -78,7 +82,7 @@ class _TaskViewState extends State<TaskView> {
   Future<bool?> _showToast(bool successToast) {
     return Fluttertoast.showToast(
         msg: successToast
-            ? "To-do created!!"
+            ? (_editMode! ? "Todo-updated" : "To-do created!!")
             : "Erro while saving to-do(Try again later)",
         backgroundColor: successToast ? Colors.greenAccent : Colors.redAccent,
         textColor: successToast ? Colors.white : Colors.black);
@@ -98,8 +102,6 @@ class _TaskViewState extends State<TaskView> {
 
     task.removeWhere((key, value) => value.isEmpty);
 
-    print("create todo:" + task.toString());
-
     var succeded = await restClient.Upsert("tasks", task, false);
     _showToast(succeded);
   }
@@ -114,16 +116,15 @@ class _TaskViewState extends State<TaskView> {
     };
 
   //TODO: MOVE THIS O A CONTROLLER FILE...
-  void _upsertTodo(RestClient restClient) async {
+  void _upsertTodo(RestClient restClient, String? todoId) async {
     var task = _TaskPairs();
 
     if (!_editMode!) {
       task.removeWhere((key, value) => value.isEmpty);
     }
+    String path = todoId == null ? "tasks" : "tasks/${todoId ?? ''}"; 
+    var succeded = await restClient.Upsert(path, task, !_editMode!);
 
-    print("Upsert todo:" + task.toString());
-
-    var succeded = await restClient.Upsert("tasks", task, true);
     _showToast(succeded);
   }
 
@@ -146,23 +147,6 @@ class _TaskViewState extends State<TaskView> {
     }
   }
 
-  // //TODO: MOVE THIS TO A CONTROLLER FILE
-  void _toggleDone(RestClient restClient, bool state) async {
-    
-    Map<String, String> task = _TaskPairs();
-    task.removeWhere((key, value) => value.isEmpty);
-
-    print("_toggleDone:" + state.toString());
-
-    var succeded = await restClient.Upsert("tasks/${_id}", task, false);
-    // _showToast(succeded);
-    print("toggle succeded?:" + succeded.toString());
-    
-    setState(() {
-      _isCompleted = !_isCompleted;
-    });
-  }
-
   PreferredSizeWidget _resolveAppBar(bool editOrCreate) {
     return editOrCreate
         ? AppBar(
@@ -172,9 +156,24 @@ class _TaskViewState extends State<TaskView> {
   }
 
   void _saveForm(RestClient restClient, int? todoId) {
+    
     _upsertTodo(
       restClient,
+      todoId?.toString(),
     );
+
+    if (!_editMode!) {
+      //Clean fields
+      setState(() {
+        _isCompleted = false;
+        _id = null;
+        _tags = [];
+        _dueDate = "";
+        _tagsController.clear();
+        _titleController.clear();
+        _commentsController.clear();
+      });
+    }
   }
 
   @override
@@ -201,6 +200,11 @@ class _TaskViewState extends State<TaskView> {
       _comments = todo.comments;
       _description = todo.description;
       _tags = todo.tags;
+
+      //set controllers
+      _titleController.text = todo.title;
+      _commentsController.text = todo.comments;
+      _descriptionController.text = todo.description;
     });
   }
 
@@ -209,14 +213,14 @@ class _TaskViewState extends State<TaskView> {
     return StoreConnector<AppState, RestClient>(
         converter: (store) => store.state.restClient,
         builder: (context, restClient) {
+          
+          //TODO: implement a better way to fix this
           if (_id != null && !_todoLoaded) {
             _editMode = true;
             _populateFormWithData(restClient, _id!);
             _todoLoaded = true;
-          } else {
-            _editMode = false;
           }
-
+      
           return Scaffold(
             appBar: _resolveAppBar(!_editMode!),
             body: Form(
@@ -226,33 +230,22 @@ class _TaskViewState extends State<TaskView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // CheckboxListTile(
-                    //   title: Text('DONE'),
-                    //   value: _isCompleted,
-                    //   onChanged: (newValue) {
-                    //     setState(()
-                    //     {
-                    //       _toggleDone(restClient, !_isCompleted );
-                    //     });
-                    //   },
-                    //   controlAffinity: ListTileControlAffinity.trailing,
-                    //   activeColor: Colors.blue
-                    // ),
-                    Row(children: [
-                      Text("STATUS: "),
-                      Checkbox(
-                      value: _isCompleted,
-                      onChanged: (newValue) {
-                        setState(()
-                        {
-                          _toggleDone(restClient, !_isCompleted );
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isCompleted ? Colors.green : Colors.amber,
+                        minimumSize: const Size.fromHeight(50), // NEW
+                      ),
+                      child: Text( _isCompleted ? 'UNMARK AS DONE':'MARK AS DONE'),
+                      onPressed: () {
+                        setState(() {
+                           _isCompleted = !_isCompleted;
                         });
                       },
                     ),
-                    ]),
-                    Text("TITLE"),
+                    SizedBox(height: 16),
                     TextFormField(
-                      initialValue: _title  ,
+                      // initialValue: _title  ,
+                      controller: _titleController,
                       decoration: InputDecoration(
                         labelText: 'Title',
                       ),
@@ -270,11 +263,11 @@ class _TaskViewState extends State<TaskView> {
                     ),
                     SizedBox(height: 16),
                     TextFormField(
-                        initialValue: _comments,
+                        controller: _commentsController,
                         minLines: 2,
                         maxLines: 4,
                         decoration: InputDecoration(
-                          labelText: _comments ?? 'Comments',
+                          labelText: 'Comments',
                         ),
                         onChanged: (value) {
                           setState(() {
@@ -283,11 +276,11 @@ class _TaskViewState extends State<TaskView> {
                         }),
                     SizedBox(height: 16),
                     TextFormField(
-                      initialValue: _description,
+                      controller: _descriptionController,
                       minLines: 2,
                       maxLines: 4,
                       decoration: InputDecoration(
-                        labelText: _description ?? 'Description',
+                        labelText: 'Description',
                       ),
                       onChanged: (value) {
                         setState(() {
@@ -365,14 +358,6 @@ class _TaskViewState extends State<TaskView> {
                       ],
                     ),
                     SizedBox(height: 16),
-                    // Checkbox(
-                    //     value: _isCompleted,
-                    //     onChanged: (newValue) {
-                    //       // TODO: Update completion status.
-
-                    //       _toggleDone(restClient, !_isCompleted );
-                    //       print(newValue);
-                    //     }),
                     Divider(),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
