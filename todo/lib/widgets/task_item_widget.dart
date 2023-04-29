@@ -12,13 +12,14 @@ class TaskItemWidget extends StatelessWidget {
   final ValueChanged onDeletedCallBack;
   final int widgetIndex;
 
-  const TaskItemWidget(this.todo, this.onDeletedCallBack, this.widgetIndex, {super.key});
+  const TaskItemWidget(this.todo, this.onDeletedCallBack, this.widgetIndex,
+      {super.key});
 
   //TODO: MOVER A UN ARCHIVO LLAMADO TODOS_CONTROLLER.DART
-  void _deleteTask(RestClient restClient) async {;
+  void _deleteTask(RestClient restClient) async {
+    ;
     var succeded = await restClient.Delete("tasks/${todo.id}");
-    if (succeded != null) 
-    {
+    if (succeded != null) {
       onDeletedCallBack(widgetIndex);
 
       Fluttertoast.showToast(
@@ -34,17 +35,15 @@ class TaskItemWidget extends StatelessWidget {
       );
     }
   }
-  
+
   void NavigateToTaskView(BuildContext context) {
     Navigator.push(
         context,
         MaterialPageRoute<void>(
             builder: (BuildContext context) => const TaskView(),
             settings: RouteSettings(
-            arguments: todo.id,
-            )
-          )
-        );
+              arguments: todo.id,
+            )));
   }
 
   @override
@@ -55,7 +54,7 @@ class TaskItemWidget extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Row(children: [
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Expanded(
                   child: InkWell(
                 onTap: () => NavigateToTaskView(context),
@@ -65,30 +64,35 @@ class TaskItemWidget extends StatelessWidget {
                     Text(
                       todo.title,
                       style: TextStyle(
-                          decoration: todo.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+                          decoration: todo.isCompleted
+                              ? TextDecoration.lineThrough
+                              : TextDecoration.none,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Colors.lightBlue),
                     ),
                     SizedBox(height: 8),
-                    Row(children: [
-                      Chip(
-                      label: Text("${todo.isCompleted ? "DONE" : "TO-DO"}",
-                          style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.bold)),
-                      backgroundColor: todo.isCompleted ? Colors.green : Colors.amber,
-                    ),
-                    Chip(
-                      label: Text("Due date [ ${todo.date} ]",
-                          style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.bold)),
-                      backgroundColor: Colors.lightBlueAccent,
+                    Row(
+                      children: [
+                        Chip(
+                          label: Text("${todo.isCompleted ? "DONE" : "TO-DO"}",
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                          backgroundColor:
+                              todo.isCompleted ? Colors.green : Colors.amber,
+                        ),
+                        Chip(
+                          label: Text("Due date [ ${todo.date} ]",
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.bold)),
+                          backgroundColor: Colors.lightBlueAccent,
+                        )
+                      ],
                     )
-                    ],)
                   ],
                 ),
               )),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               IconButton(
                   onPressed: () => _deleteTask(restClient),
                   icon: const Icon(Icons.delete))

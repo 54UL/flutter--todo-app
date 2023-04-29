@@ -106,14 +106,15 @@ class _TaskViewState extends State<TaskView> {
     _showToast(succeded);
   }
 
-  Map<String, String> _TaskPairs()=> <String, String>{
-      'title': _title ?? '',
-      'is_completed': _isCompleted.toString().compareTo("true") == 0 ? "1" : "0",
-      'due_date': _dueDate ?? '',
-      'comments': _comments ?? '',
-      'description': _description ?? '',
-      'tags': _tags.join(',')
-    };
+  Map<String, String> _TaskPairs() => <String, String>{
+        'title': _title ?? '',
+        'is_completed':
+            _isCompleted.toString().compareTo("true") == 0 ? "1" : "0",
+        'due_date': _dueDate ?? '',
+        'comments': _comments ?? '',
+        'description': _description ?? '',
+        'tags': _tags.join(',')
+      };
 
   //TODO: MOVE THIS O A CONTROLLER FILE...
   void _upsertTodo(RestClient restClient, String? todoId) async {
@@ -122,7 +123,7 @@ class _TaskViewState extends State<TaskView> {
     if (!_editMode!) {
       task.removeWhere((key, value) => value.isEmpty);
     }
-    String path = todoId == null ? "tasks" : "tasks/${todoId ?? ''}"; 
+    String path = todoId == null ? "tasks" : "tasks/${todoId ?? ''}";
     var succeded = await restClient.Upsert(path, task, !_editMode!);
 
     _showToast(succeded);
@@ -156,7 +157,6 @@ class _TaskViewState extends State<TaskView> {
   }
 
   void _saveForm(RestClient restClient, int? todoId) {
-    
     _upsertTodo(
       restClient,
       todoId?.toString(),
@@ -214,14 +214,13 @@ class _TaskViewState extends State<TaskView> {
     return StoreConnector<AppState, RestClient>(
         converter: (store) => store.state.restClient,
         builder: (context, restClient) {
-          
           //TODO: implement a better way to fix this
           if (_id != null && !_todoLoaded) {
             _editMode = true;
             _populateFormWithData(restClient, _id!);
             _todoLoaded = true;
           }
-      
+
           return Scaffold(
             appBar: _resolveAppBar(!_editMode!),
             body: Form(
@@ -233,13 +232,15 @@ class _TaskViewState extends State<TaskView> {
                   children: [
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isCompleted ? Colors.green : Colors.amber,
+                        backgroundColor:
+                            _isCompleted ? Colors.green : Colors.amber,
                         minimumSize: const Size.fromHeight(50), // NEW
                       ),
-                      child: Text( _isCompleted ? 'UNMARK AS DONE':'MARK AS DONE'),
+                      child: Text(
+                          _isCompleted ? 'UNMARK AS DONE' : 'MARK AS DONE'),
                       onPressed: () {
                         setState(() {
-                           _isCompleted = !_isCompleted;
+                          _isCompleted = !_isCompleted;
                         });
                       },
                     ),

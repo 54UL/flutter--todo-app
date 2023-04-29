@@ -7,6 +7,8 @@ class AppState {
   AppState({required this.restClient});
 
   factory AppState.initialState(String baseUrl, String apiKey, String requestToken) {
+
+    //This is leaking importat information and is only here due to debug
     print("Initial app state: baseuri:${baseUrl}\nBearer ${apiKey}\nrequestToken ${requestToken}");
     
     return AppState(

@@ -44,12 +44,16 @@ class _TaskListWidgetState extends State<TaskListWidget> {
     super.initState();
   }
 
-  void _refreshList(dynamic index) {
+  void _removeItemFromList(dynamic index) {
     var todoIndex = index as int;
 
     setState(() {
       _loadedTodos!.removeAt(todoIndex);
     });
+  }
+
+  Future<void> _refreshList() async {
+    setState(() {});
   }
 
   @override
@@ -63,19 +67,23 @@ class _TaskListWidgetState extends State<TaskListWidget> {
                 if (snapshot.hasData) {
                   final todos = snapshot.data!;
                   _loadedTodos = todos;
-                  if (todos.isNotEmpty){
-                    return ListView.builder(
-                    itemCount: _loadedTodos?.length,
-                    itemBuilder: (context, index) {
-                      if (_loadedTodos != null) {
-                        final todo = _loadedTodos![index];
-                        return TaskItemWidget(todo, _refreshList, index);
-                      }
-                    },
-                  );
-                }else{
-                  return Center(child: Text('Empty todo list...'));
-                }
+
+                  if (todos.isNotEmpty) {
+                    return RefreshIndicator(
+                        onRefresh: _refreshList,
+                        child: ListView.builder(
+                          itemCount: _loadedTodos?.length,
+                          itemBuilder: (context, index) {
+                            if (_loadedTodos != null) {
+                              final todo = _loadedTodos![index];
+                              return TaskItemWidget(
+                                  todo, _removeItemFromList, index);
+                            }
+                          },
+                        ));
+                  } else {
+                    return Center(child: Text('Empty todo list...'));
+                  }
                 } else if (snapshot.hasError) {
                   return Center(child: Text('${snapshot.error}'));
                 } else {
